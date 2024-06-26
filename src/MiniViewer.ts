@@ -94,34 +94,23 @@ export class MiniViewer
     private _prepareEnvironment() {
         const hemisphericLight = new HemisphericLight('ambientLight', new Vector3(0, 1, 0), this._scene);
         this._scene.environmentTexture = MiniViewer.LoadSkyboxPathTexture(this._scene);
-        this._createDefaultSkybox(this._scene.environmentTexture, true, (this._scene.activeCamera!.maxZ - this._scene.activeCamera!.minZ) / 2, 0.3, false);
+        this._createDefaultSkybox((this._scene.activeCamera!.maxZ - this._scene.activeCamera!.minZ) / 2, 0.3, false);
     }
     
     //copy/paste from scene helpers
-    private _createDefaultSkybox(environmentTexture: BaseTexture, pbr = false, scale = 1000, blur = 0, setGlobalEnvTexture = true): void {
+    private _createDefaultSkybox(scale = 1000, blur = 0, setGlobalEnvTexture = true): void {
         const scene = this._scene;
         const hdrSkybox = CreateBox("hdrSkyBox", { size: scale }, scene);
-        if (pbr) {
-            const hdrSkyboxMaterial = new PBRMaterial("skyBox", scene);
-            hdrSkyboxMaterial.backFaceCulling = false;
-            hdrSkyboxMaterial.reflectionTexture = scene.environmentTexture!.clone();
-            if (hdrSkyboxMaterial.reflectionTexture) {
-                hdrSkyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
-            }
-            hdrSkyboxMaterial.microSurface = 1.0 - blur;
-            hdrSkyboxMaterial.disableLighting = true;
-            hdrSkyboxMaterial.twoSidedLighting = true;
-            hdrSkybox.material = hdrSkyboxMaterial;
-        } else {
-            const skyboxMaterial = new StandardMaterial("skyBox", scene);
-            skyboxMaterial.backFaceCulling = false;
-            skyboxMaterial.reflectionTexture = environmentTexture.clone();
-            if (skyboxMaterial.reflectionTexture) {
-                skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
-            }
-            skyboxMaterial.disableLighting = true;
-            hdrSkybox.material = skyboxMaterial;
+        const hdrSkyboxMaterial = new PBRMaterial("skyBox", scene);
+        hdrSkyboxMaterial.backFaceCulling = false;
+        hdrSkyboxMaterial.reflectionTexture = scene.environmentTexture!.clone();
+        if (hdrSkyboxMaterial.reflectionTexture) {
+            hdrSkyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
         }
+        hdrSkyboxMaterial.microSurface = 1.0 - blur;
+        hdrSkyboxMaterial.disableLighting = true;
+        hdrSkyboxMaterial.twoSidedLighting = true;
+        hdrSkybox.material = hdrSkyboxMaterial;
         hdrSkybox.isPickable = false;
         hdrSkybox.infiniteDistance = true;
         hdrSkybox.ignoreCameraMaxZ = true;
