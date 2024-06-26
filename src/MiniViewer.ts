@@ -1,12 +1,19 @@
 import "@babylonjs/loaders/glTF/2.0";
-import { Engine } from "@babylonjs/core/Engines/engine";
+import { Engine } from "@babylonjs/core";
 import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Scene } from "@babylonjs/core/scene";
-import { ArcRotateCamera, HDRCubeTexture, ILoadingScreen } from "@babylonjs/core";
+import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
+import { HDRCubeTexture } from "@babylonjs/core/Materials/Textures/hdrCubeTexture";
+import { ILoadingScreen } from "@babylonjs/core/Loading/loadingScreen";
 import type { FramingBehavior } from "@babylonjs/core/Behaviors/Cameras/framingBehavior";
 import { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
+import { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
+import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
+import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder";
+import { Texture } from "@babylonjs/core/Materials/Textures/texture";
+import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 
 class ViewerLoadingScreen implements ILoadingScreen {
     //optional, but needed due to interface definitions
@@ -32,7 +39,6 @@ export class MiniViewer
     private static LoadSkyboxPathTexture(scene: Scene) {
         let path = this.SkyboxPath;
         let rotationY = 0;
-
         if (path.length === 0) {
             const defaultSkyboxIndex = 1;//Math.max(0, LocalStorageHelper.ReadLocalStorageValue("defaultSkyboxId", 0));
             path = this.Skyboxes[defaultSkyboxIndex];
@@ -88,7 +94,37 @@ export class MiniViewer
     private _prepareEnvironment() {
         const hemisphericLight = new HemisphericLight('ambientLight', new Vector3(0, 1, 0), this._scene);
         this._scene.environmentTexture = MiniViewer.LoadSkyboxPathTexture(this._scene);
-        this._scene.createDefaultSkybox(this._scene.environmentTexture, true, (this._scene.activeCamera!.maxZ - this._scene.activeCamera!.minZ) / 2, 0.3, false);
+        this._createDefaultSkybox(this._scene.environmentTexture, true, (this._scene.activeCamera!.maxZ - this._scene.activeCamera!.minZ) / 2, 0.3, false);
+    }
+    
+    //copy/paste from scene helpers
+    private _createDefaultSkybox(environmentTexture: BaseTexture, pbr = false, scale = 1000, blur = 0, setGlobalEnvTexture = true): void {
+        const scene = this._scene;
+        const hdrSkybox = CreateBox("hdrSkyBox", { size: scale }, scene);
+        if (pbr) {
+            const hdrSkyboxMaterial = new PBRMaterial("skyBox", scene);
+            hdrSkyboxMaterial.backFaceCulling = false;
+            hdrSkyboxMaterial.reflectionTexture = scene.environmentTexture!.clone();
+            if (hdrSkyboxMaterial.reflectionTexture) {
+                hdrSkyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
+            }
+            hdrSkyboxMaterial.microSurface = 1.0 - blur;
+            hdrSkyboxMaterial.disableLighting = true;
+            hdrSkyboxMaterial.twoSidedLighting = true;
+            hdrSkybox.material = hdrSkyboxMaterial;
+        } else {
+            const skyboxMaterial = new StandardMaterial("skyBox", scene);
+            skyboxMaterial.backFaceCulling = false;
+            skyboxMaterial.reflectionTexture = environmentTexture.clone();
+            if (skyboxMaterial.reflectionTexture) {
+                skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
+            }
+            skyboxMaterial.disableLighting = true;
+            hdrSkybox.material = skyboxMaterial;
+        }
+        hdrSkybox.isPickable = false;
+        hdrSkybox.infiniteDistance = true;
+        hdrSkybox.ignoreCameraMaxZ = true;
     }
 
     // copy/paste from sandbox and scene helpers
