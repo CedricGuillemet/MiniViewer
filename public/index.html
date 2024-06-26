@@ -34,6 +34,7 @@
               const viewer = await MiniViewer.createAsyncFromCanvas(canvas);
               viewer.loadModelAsync(modelUrl);
             } catch (error) {
+              console.log(error);
             }
         })();
 	</script>
