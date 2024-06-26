@@ -9,7 +9,7 @@ module.exports = {
     
     // Output configuration
     output: {
-        filename: 'miniviewer.js',
+        filename: 'webtest.js',
         path: path.resolve(__dirname, 'dist'),
     },
     resolve: {
