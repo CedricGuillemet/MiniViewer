@@ -4,7 +4,6 @@ import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Scene } from "@babylonjs/core/scene";
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
-import { HDRCubeTexture } from "@babylonjs/core/Materials/Textures/hdrCubeTexture";
 import type { FramingBehavior } from "@babylonjs/core/Behaviors/Cameras/framingBehavior";
 import { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
 import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
@@ -80,12 +79,12 @@ export class MiniViewer
             return;
         }
         this._scene.environmentTexture = CubeTexture.CreateFromPrefilteredData(path, this._scene);
-        this._createDefaultSkybox((this._scene.activeCamera!.maxZ - this._scene.activeCamera!.minZ) / 2, 0.3, false);
+        this._createDefaultSkybox((this._scene.activeCamera!.maxZ - this._scene.activeCamera!.minZ) / 2, 0.3);
         this._scene.autoClear = false;
     }
     
     //copy/paste from scene helpers
-    private _createDefaultSkybox(scale = 1000, blur = 0, setGlobalEnvTexture = true): void {
+    private _createDefaultSkybox(scale: number, blur: number): void {
         const scene = this._scene;
         const hdrSkybox = CreateBox("hdrSkyBox", { size: scale }, scene);
         const hdrSkyboxMaterial = new PBRMaterial("skyBox", scene);
