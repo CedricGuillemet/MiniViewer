@@ -1,5 +1,5 @@
 import { AbstractEngine, Engine, Nullable } from "@babylonjs/core";
-import { MiniViewer, ViewerOptions as BaseViewerOptions } from "@babylonjs/viewer2";
+import { Viewer, ViewerOptions as BaseViewerOptions } from "@babylonjs/viewer2";
 
 type ViewerOptions = BaseViewerOptions & ({
     engine: AbstractEngine;
@@ -8,18 +8,18 @@ type ViewerOptions = BaseViewerOptions & ({
     antialias?: boolean;
 });
 
-export function createViewer(options: ViewerOptions): MiniViewer {
+export function createViewer(options: ViewerOptions): Viewer {
     if ("engine" in options) {
-        return new MiniViewer(options.engine, options);
+        return new Viewer(options.engine, options);
     } else {
-        return new MiniViewer(new Engine(options.canvas, options.antialias), options);
+        return new Viewer(new Engine(options.canvas, options.antialias), options);
     }
 }
 
 export class HTML3DElement extends HTMLElement {
   public static readonly observedAttributes = Object.freeze(["src", "env"] as const);
 
-  private readonly viewer: MiniViewer;
+  private readonly viewer: Viewer;
 
   public constructor() {
     super();

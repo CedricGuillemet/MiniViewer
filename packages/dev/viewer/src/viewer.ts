@@ -38,7 +38,7 @@ export const defaultViewerOptions = {
 
 export type ViewerOptions = Readonly<Partial<typeof defaultViewerOptions>>;
 
-export class MiniViewer implements IDisposable
+export class Viewer implements IDisposable
 {
     private readonly scene: Scene;
     private readonly camera: ArcRotateCamera;
