@@ -15,30 +15,15 @@
         overflow: hidden;
       }
 
-      #renderCanvas {
+      babylon-viewer {
         width: 100%;
         height: 100%;
-        display: block;
-        font-size: 0;
       }
     </style>
   </head>
 
   <body>
-    <canvas id="renderCanvas" touch-action="none"></canvas>
-	<script src="webtest.js"></script>
-    
-	<script>
-    (async () => {
-            try {
-              const modelUrl="https://playground.babylonjs.com/scenes/BoomBox.glb";
-              const canvas = document.getElementById("renderCanvas");
-              const viewer = await MiniViewer.createAsyncFromCanvas(canvas);
-              viewer.loadModelAsync(modelUrl);
-            } catch (error) {
-              console.log(error);
-            }
-        })();
-	</script>
+    <babylon-viewer src="https://playground.babylonjs.com/scenes/BoomBox.glb"></babylon-viewer>
+  	<script src="webtest.js"></script>
   </body>
 </html>

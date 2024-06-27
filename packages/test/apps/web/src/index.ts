@@ -1,3 +1,3 @@
-import { MiniViewer } from '@babylonjs/viewer2';
+import { registerCustomElements } from '@babylonjs/viewer-web';
 
-(window as any).MiniViewer = MiniViewer;
+registerCustomElements();

@@ -1,0 +1,17 @@
+{
+  "name": "@babylonjs/viewer-web",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "peerDependencies": {
+    "@babylonjs/core": "^7.12.0",
+    "@babylonjs/loaders": "^7.12.0",
+    "@babylonjs/materials": "^7.12.0",
+    "@babylonjs/viewer2": "^1.0.0"
+  }
+}
