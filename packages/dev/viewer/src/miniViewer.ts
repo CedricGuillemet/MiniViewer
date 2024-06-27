@@ -1,72 +1,59 @@
 import "@babylonjs/loaders/glTF/2.0";
-import { Engine } from "@babylonjs/core";
-import { HemisphericLight } from "@babylonjs/core/Lights/hemisphericLight";
+import { AbstractEngine, Color4, Engine, HemisphericLight, Nullable } from "@babylonjs/core";
 import { SceneLoader } from "@babylonjs/core/Loading/sceneLoader";
 import { Vector3 } from "@babylonjs/core/Maths/math.vector";
 import { Scene } from "@babylonjs/core/scene";
 import { ArcRotateCamera } from "@babylonjs/core/Cameras/arcRotateCamera";
 import { HDRCubeTexture } from "@babylonjs/core/Materials/Textures/hdrCubeTexture";
-import { ILoadingScreen } from "@babylonjs/core/Loading/loadingScreen";
 import type { FramingBehavior } from "@babylonjs/core/Behaviors/Cameras/framingBehavior";
 import { CubeTexture } from "@babylonjs/core/Materials/Textures/cubeTexture";
-import { BaseTexture } from "@babylonjs/core/Materials/Textures/baseTexture";
 import { PBRMaterial } from "@babylonjs/core/Materials/PBR/pbrMaterial";
 import { CreateBox } from "@babylonjs/core/Meshes/Builders/boxBuilder";
 import { Texture } from "@babylonjs/core/Materials/Textures/texture";
-import { StandardMaterial } from "@babylonjs/core/Materials/standardMaterial";
 
-class ViewerLoadingScreen implements ILoadingScreen {
-    //optional, but needed due to interface definitions
-    constructor(public loadingUIText: string) {}
-    loadingUIBackgroundColor: string ="";
-    public displayLoadingUI() {}
-    public hideLoadingUI() {}
+export interface ViewerOptions {
+    engine?: AbstractEngine|null;
+    canvas?: HTMLCanvasElement|OffscreenCanvas|null;
+    antialias?: boolean;
+    skyboxPath?: string;
 }
-  
+
 export class MiniViewer
 {
     private _scene: Scene;
+    private _disposableEngine: Nullable<AbstractEngine> = null;
 
-    // copy/paste from EnvironmentTools.ts
-    private static Skyboxes = [
-        "https://assets.babylonjs.com/environments/sanGiuseppeBridge.env",
-        "https://assets.babylonjs.com/environments/ulmerMuenster.env",
-        "https://assets.babylonjs.com/environments/studio.env",
-    ];
-    private static SkyboxesRotation = [5.54, 1.9, 0];
-    private static SkyboxPath = "";
-
-    private static LoadSkyboxPathTexture(scene: Scene) {
-        let path = this.SkyboxPath;
-        let rotationY = 0;
-        if (path.length === 0) {
-            const defaultSkyboxIndex = 1;//Math.max(0, LocalStorageHelper.ReadLocalStorageValue("defaultSkyboxId", 0));
-            path = this.Skyboxes[defaultSkyboxIndex];
-            rotationY = this.SkyboxesRotation[defaultSkyboxIndex];
-        }
-
-        if (path.indexOf(".hdr") === path.length - 4) {
-            return new HDRCubeTexture(path, scene, 256, false, true, false, true);
-        }
-
-        const envTexture = CubeTexture.CreateFromPrefilteredData(path, scene);
-        envTexture.rotationY = rotationY;
-        return envTexture;
-    }
-
-    static async createAsyncFromCanvas(canvas: any): Promise<MiniViewer> {
+    static async createAsync(options?: ViewerOptions): Promise<MiniViewer> {
         return new Promise((resolve, reject) => {
+            if (!options?.canvas && !options?.engine) {
+                throw new Error("Babylon.js Viewer needs a Canvas, Offscreen canvas or an Engine.");
+            }
             try {
-                const engine = new Engine(canvas);
-                var loadingScreen = new ViewerLoadingScreen("");
-                engine.loadingScreen = loadingScreen;
-                resolve(new MiniViewer(engine));
+                const engine = options.engine ?? new Engine(options.canvas!, !!options.antialias);
+                resolve(new MiniViewer({engine: engine, canvas: options.canvas, antialias: options.antialias, skyboxPath: options.skyboxPath}));
             } catch (error) {
                 reject(error);
             }
         });
     }
-    loadModelAsync(url: string): Promise<void> {
+    
+    constructor(options?: ViewerOptions ) {
+        if (!options?.engine) {
+            throw new Error("No engine set in Viewer constructor options.");
+        }
+        this._disposableEngine = options.canvas ? options.engine : null;
+        this._scene = new Scene(options?.engine!);
+        this._scene.clearColor = new Color4(0.1,0.1,0.2,1.0);
+        const camera = new ArcRotateCamera("camera1", 0,0,1, Vector3.Zero(), this._scene);
+        this._prepareCamera(); // set default camera values
+        this._prepareEnvironment(options.skyboxPath);
+        // render at least back ground. Maybe we can only run renderloop when a mesh is loaded. What to render until then?
+        this._scene.getEngine().runRenderLoop(() => {
+            this._scene.render();
+        });
+    }
+
+    public loadModelAsync(url: string): Promise<void> {
         return new Promise((resolve, reject) =>{
             try {
                 SceneLoader.ImportMesh("","", url, this._scene, (meshes)=> {
@@ -78,23 +65,23 @@ export class MiniViewer
             }
         });
     }
-    constructor(engine: Engine) {
-        this._scene = new Scene(engine);
-        this._scene.clearColor.set(0,0,0,0); // makes nothing visible until it's ready
-        this._scene.autoClear = false;
-        const camera = new ArcRotateCamera("camera1", 0,0,1, Vector3.Zero(), this._scene);
-        this._prepareCamera(); // set default camera values
-        this._prepareEnvironment();
-        // render at least back ground. Maybe we can only run renderloop when a mesh is loaded. What to render until then?
-        this._scene.getEngine().runRenderLoop(() => {
-            this._scene.render();
-        });
+
+    public dispose(): void {
+        this._scene.dispose();
+        if (this._disposableEngine) {
+            this._disposableEngine.dispose();
+        }
     }
 
-    private _prepareEnvironment() {
-        const hemisphericLight = new HemisphericLight('ambientLight', new Vector3(0, 1, 0), this._scene);
-        this._scene.environmentTexture = MiniViewer.LoadSkyboxPathTexture(this._scene);
+    private _prepareEnvironment(path: string | undefined) {
+        if (!path) {
+            const light = new HemisphericLight("hemilight", Vector3.Up(), this._scene);
+            this._scene.autoClear = true;
+            return;
+        }
+        this._scene.environmentTexture = CubeTexture.CreateFromPrefilteredData(path, this._scene);
         this._createDefaultSkybox((this._scene.activeCamera!.maxZ - this._scene.activeCamera!.minZ) / 2, 0.3, false);
+        this._scene.autoClear = false;
     }
     
     //copy/paste from scene helpers

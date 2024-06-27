@@ -8,6 +8,7 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "readme": "README.md",
   "peerDependencies": {
     "@babylonjs/core": "^7.12.0",
     "@babylonjs/loaders": "^7.12.0",

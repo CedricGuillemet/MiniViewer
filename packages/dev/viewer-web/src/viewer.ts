@@ -35,8 +35,8 @@ export class HTML3DElement extends HTMLElement {
 
   async connectedCallback() {
     console.log(this.getAttribute("src"));
-    const canvas = this.shadowRoot!.querySelector("#renderCanvas");
-    const viewer = await MiniViewer.createAsyncFromCanvas(canvas);
+    const canvas = this.shadowRoot!.querySelector("#renderCanvas") as HTMLCanvasElement;
+    const viewer = await MiniViewer.createAsync({canvas: canvas, antialias: true, skyboxPath: "https://assets.babylonjs.com/environments/ulmerMuenster.env"});
     viewer.loadModelAsync(this.getAttribute("src")!);
   }
 }
