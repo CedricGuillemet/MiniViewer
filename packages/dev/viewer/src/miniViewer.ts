@@ -44,6 +44,7 @@ export class MiniViewer
         this._scene = new Scene(options?.engine!);
         this._scene.clearColor = new Color4(0.1,0.1,0.2,1.0);
         const camera = new ArcRotateCamera("camera1", 0,0,1, Vector3.Zero(), this._scene);
+        camera.attachControl();
         this._prepareCamera(); // set default camera values
         this._prepareEnvironment(options.skyboxPath);
         // render at least back ground. Maybe we can only run renderloop when a mesh is loaded. What to render until then?
@@ -125,7 +126,7 @@ export class MiniViewer
             const worldSize = worldExtends.max.subtract(worldExtends.min);
             const worldCenter = worldExtends.min.add(worldSize.scale(0.5));
 
-            radius = worldSize.length() * 1.5;
+            radius = worldSize.length() * 1.2;
 
             if (!isFinite(radius)) {
                 radius = 1;
