@@ -1,9 +1,27 @@
-import { MiniViewer } from "@babylonjs/viewer2";
+import { AbstractEngine, Engine, Nullable } from "@babylonjs/core";
+import { MiniViewer, ViewerOptions as BaseViewerOptions } from "@babylonjs/viewer2";
+
+type ViewerOptions = BaseViewerOptions & ({
+    engine: AbstractEngine;
+} | {
+    canvas: HTMLCanvasElement;
+    antialias?: boolean;
+});
+
+export function createViewer(options: ViewerOptions): MiniViewer {
+    if ("engine" in options) {
+        return new MiniViewer(options.engine, options);
+    } else {
+        return new MiniViewer(new Engine(options.canvas, options.antialias), options);
+    }
+}
 
 export class HTML3DElement extends HTMLElement {
-  public static readonly observedAttributes = Object.freeze(["src"] as const);
+  public static readonly observedAttributes = Object.freeze(["src", "env"] as const);
 
-  constructor() {
+  private readonly viewer: MiniViewer;
+
+  public constructor() {
     super();
 
     const shadowRoot = this.attachShadow({ mode: "open" });
@@ -31,13 +49,35 @@ export class HTML3DElement extends HTMLElement {
     <div id="container">
       <canvas id="renderCanvas" touch-action="none"></canvas>
     </div>`;
+
+    const canvas = shadowRoot.querySelector("#renderCanvas") as HTMLCanvasElement;
+    this.viewer = createViewer({ canvas });
   }
 
-  async connectedCallback() {
-    console.log(this.getAttribute("src"));
-    const canvas = this.shadowRoot!.querySelector("#renderCanvas") as HTMLCanvasElement;
-    const viewer = await MiniViewer.createAsync({canvas: canvas, antialias: true, skyboxPath: this.getAttribute("env")!});
-    viewer.loadModelAsync(this.getAttribute("src")!);
+  public get src() {
+    return this.getAttribute("src");
+  }
+
+  public set src(value: Nullable<string>) {
+    if (value === null) {
+      this.removeAttribute("src");
+    } else {
+      this.setAttribute("src", value);
+    }
+  }
+
+  public connectedCallback() {
+  }
+
+  public attributeChangedCallback(name: typeof HTML3DElement.observedAttributes[number], oldValue: string, newValue: string) {
+    switch(name) {
+        case "src":
+            this.viewer.loadModelAsync(newValue);
+            break;
+        case "env":
+            this.viewer.loadEnvironmentAsync(newValue);
+            break;
+    }
   }
 }
 
