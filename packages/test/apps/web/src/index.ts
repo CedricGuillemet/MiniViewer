@@ -1,3 +1,3 @@
-import { registerCustomElements } from '@babylonjs/viewer-web';
+import { registerCustomElements } from '@babylonjs/viewer-alpha';
 
 registerCustomElements();
