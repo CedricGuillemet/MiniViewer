@@ -1,15 +1,6 @@
-import { Engine, EngineOptions, Logger, Nullable } from "@babylonjs/core";
-import { Viewer, ViewerOptions } from "./viewer";
-
-export function createViewerForCanvas(canvas: HTMLCanvasElement, options?: ViewerOptions & EngineOptions): Viewer {
-    const engine = new Engine(canvas, undefined, options);
-    const viewer = new Viewer(engine, options);
-
-    // TODO: register for viewer.onDisposeObservable and dispose engine instance
-    // TODO: use ResizeObserver to monitor canvas and update width/height and resize engine (maybe something like https://webgpufundamentals.org/webgpu/lessons/webgpu-resizing-the-canvas.html)
-
-    return viewer;
-}
+import { Logger, Nullable } from "@babylonjs/core";
+import { Viewer } from "./viewer";
+import { createViewerForCanvas } from "./viewerFactory";
 
 export class HTML3DElement extends HTMLElement {
   public static readonly observedAttributes = Object.freeze(["src", "env"] as const);
