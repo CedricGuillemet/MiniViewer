@@ -1,5 +1,5 @@
 import { Engine, EngineOptions, Logger, Nullable } from "@babylonjs/core";
-import { Viewer, ViewerOptions } from "@babylonjs/viewer2";
+import { Viewer, ViewerOptions } from "./viewer";
 
 export function createViewerForCanvas(canvas: HTMLCanvasElement, options?: ViewerOptions & EngineOptions): Viewer {
     const engine = new Engine(canvas, undefined, options);
