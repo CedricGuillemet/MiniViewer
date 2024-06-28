@@ -1,19 +1,14 @@
-import { AbstractEngine, Engine, Nullable } from "@babylonjs/core";
-import { Viewer, ViewerOptions as BaseViewerOptions } from "@babylonjs/viewer2";
+import { Engine, EngineOptions, Logger, Nullable } from "@babylonjs/core";
+import { Viewer, ViewerOptions } from "@babylonjs/viewer2";
 
-type ViewerOptions = BaseViewerOptions & ({
-    engine: AbstractEngine;
-} | {
-    canvas: HTMLCanvasElement;
-    antialias?: boolean;
-});
+export function createViewerForCanvas(canvas: HTMLCanvasElement, options?: ViewerOptions & EngineOptions): Viewer {
+    const engine = new Engine(canvas, undefined, options);
+    const viewer = new Viewer(engine, options);
 
-export function createViewer(options: ViewerOptions): Viewer {
-    if ("engine" in options) {
-        return new Viewer(options.engine, options);
-    } else {
-        return new Viewer(new Engine(options.canvas, options.antialias), options);
-    }
+    // TODO: register for viewer.onDisposeObservable and dispose engine instance
+    // TODO: use ResizeObserver to monitor canvas and update width/height and resize engine (maybe something like https://webgpufundamentals.org/webgpu/lessons/webgpu-resizing-the-canvas.html)
+
+    return viewer;
 }
 
 export class HTML3DElement extends HTMLElement {
@@ -51,7 +46,7 @@ export class HTML3DElement extends HTMLElement {
     </div>`;
 
     const canvas = shadowRoot.querySelector("#renderCanvas") as HTMLCanvasElement;
-    this.viewer = createViewer({ canvas });
+    this.viewer = createViewerForCanvas(canvas);
   }
 
   public get src() {
@@ -72,10 +67,10 @@ export class HTML3DElement extends HTMLElement {
   public attributeChangedCallback(name: typeof HTML3DElement.observedAttributes[number], oldValue: string, newValue: string) {
     switch(name) {
         case "src":
-            this.viewer.loadModelAsync(newValue);
+            this.viewer.loadModelAsync(newValue).catch(Logger.Error);
             break;
         case "env":
-            this.viewer.loadEnvironmentAsync(newValue);
+            this.viewer.loadEnvironmentAsync(newValue).catch(Logger.Error);
             break;
     }
   }

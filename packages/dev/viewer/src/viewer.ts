@@ -34,9 +34,9 @@ function createDefaultSkybox(scene: Scene, reflectionTexture: BaseTexture, scale
 
 export const defaultViewerOptions = {
     backgroundColor: new Color4(0.1, 0.1, 0.2, 1.0),
-};
+} as const;
 
-export type ViewerOptions = Readonly<Partial<typeof defaultViewerOptions>>;
+export type ViewerOptions = Partial<typeof defaultViewerOptions>;
 
 export class Viewer implements IDisposable
 {
