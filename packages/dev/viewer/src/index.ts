@@ -1,1 +1,1 @@
-export * from './miniViewer';
+export * from './viewer';
