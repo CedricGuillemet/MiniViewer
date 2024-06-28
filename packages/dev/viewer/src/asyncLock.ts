@@ -8,7 +8,7 @@
  * const myLock = new AsyncLock();
  *
  * private async MyFuncAsync(): Promise<void> {
- *   await myLock.LockAsync(async () => {
+ *   await myLock.lockAsync(async () => {
  *     await operation1Async();
  *     await operation2Async();
  *   });

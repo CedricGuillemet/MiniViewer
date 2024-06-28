@@ -36,7 +36,9 @@ export const defaultViewerOptions = {
     backgroundColor: new Color4(0.1, 0.1, 0.2, 1.0),
 } as const;
 
-export type ViewerOptions = Partial<typeof defaultViewerOptions>;
+export type ViewerOptions = Partial<typeof defaultViewerOptions & Readonly<{
+    onInitialized: (details: { scene: Scene, camera: ArcRotateCamera }) => void;
+}>>;
 
 export class Viewer implements IDisposable
 {
@@ -60,11 +62,13 @@ export class Viewer implements IDisposable
         this.camera = new ArcRotateCamera("camera1", 0,0,1, Vector3.Zero(), this.scene);
         this.camera.attachControl();
         this._reframeCamera(); // set default camera values
-        
+
         // render at least back ground. Maybe we can only run renderloop when a mesh is loaded. What to render until then?
         this.engine.runRenderLoop(() => {
             this.scene.render();
         });
+
+        options?.onInitialized?.({ scene: this.scene, camera: this.camera });
     }
 
     public async loadModelAsync(url: string, abortSignal?: AbortSignal): Promise<void> {
@@ -122,7 +126,7 @@ export class Viewer implements IDisposable
                     this.scene.environmentTexture = cubeTexture;
                     const skybox = createDefaultSkybox(this.scene, cubeTexture.clone(), (this.camera.maxZ - this.camera.minZ) / 2, 0.3);
                     this.scene.autoClear = false;
-    
+
                     const successObserver = cubeTexture.onLoadObservable.addOnce(() => {
                         successObserver.remove();
                         errorObserver.remove();
@@ -133,7 +137,7 @@ export class Viewer implements IDisposable
                             }
                         });
                     });
-    
+
                     const errorObserver = Texture.OnTextureLoadErrorObservable.add((texture) => {
                         if (texture === cubeTexture) {
                             successObserver.remove();
